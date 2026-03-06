@@ -13,11 +13,69 @@
 | 12.9          | 5.0 – 12.1                    |
 | 13.0 – 13.1   | 7.5 – 12.1                    |
 
+---
 
-[CUDA Toolkit Archive - Official NVIDIA](https://developer.nvidia.com/cuda-toolkit-archive)
+### Check CUDA version installed:
 
-[GPU Compute Capability - Official NVIDIA](https://developer.nvidia.com/cuda/gpus)
+```bash
+nvcc --version
+```
 
-[Legacy GPU Compute Capability - Official NVIDIA](https://developer.nvidia.com/cuda/gpus)
+```
+$ nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2024 NVIDIA Corporation
+Built on Thu_Sep_12_02:18:05_PDT_2024
+Cuda compilation tools, release 12.6, V12.6.77
+Build cuda_12.6.r12.6/compiler.34841621_0
+```
 
-[CUDA - Wikipedia](https://en.wikipedia.org/wiki/CUDA)
+---
+
+### Check your GPU compute cap:
+
+```bash
+nvidia-smi --query-gpu=name,compute_cap
+```
+
+```bash
+$ nvidia-smi --query-gpu=name,compute_cap
+name, compute_cap
+NVIDIA RTX A6000, 8.6
+NVIDIA RTX A6000, 8.6
+```
+
+---
+
+### List all GPU architectures supported by CUDA Toolkit:
+
+```bash
+nvcc --list-gpu-arch
+```
+
+```bash
+$ nvcc --list-gpu-arch
+compute_50
+compute_52
+compute_53
+compute_60
+compute_61
+compute_62
+compute_70
+compute_72
+compute_75
+compute_80
+compute_86
+compute_87
+compute_89
+compute_90
+```
+
+---
+
+### Other useful links:
+
+- GPU Compute Capability - [Official NVIDIA](https://developer.nvidia.com/cuda/gpus)
+- Legacy GPU Compute Capability - [Official NVIDIA](https://developer.nvidia.com/cuda/gpus/legacy)
+- CUDA Toolkit Archive - [Official NVIDIA](https://developer.nvidia.com/cuda-toolkit-archive)
+- CUDA - [Wikipedia](https://en.wikipedia.org/wiki/CUDA)
