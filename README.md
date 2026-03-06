@@ -1,6 +1,12 @@
-# NVIDIA CUDA COMPUTE CAPABILITY
+<div align="center">
+
+![cuda-2026](https://github.com/user-attachments/assets/dea107b7-e987-4c15-9749-ce3c924b57b2)
 
 ***Updated on 2026-03-06***
+
+</div>
+
+---
 
 | CUDA Version  | Supported Compute Capabilities |
 |---------------|-------------------------------|
