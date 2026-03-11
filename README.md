@@ -4,7 +4,7 @@
 
 **JUST A NOTE**
 
-***Updated on 2026-03-06***
+***Updated on 2026-03-11***
 
 </div>
 
@@ -86,4 +86,5 @@ compute_90
 - GPU Compute Capability - [Official NVIDIA](https://developer.nvidia.com/cuda/gpus)
 - Legacy GPU Compute Capability - [Official NVIDIA](https://developer.nvidia.com/cuda/gpus/legacy)
 - CUDA Toolkit Archive - [Official NVIDIA](https://developer.nvidia.com/cuda-toolkit-archive)
+- cuDNN Archive - [Official NVIDIA](https://developer.nvidia.com/cudnn-archive)
 - CUDA - [Wikipedia](https://en.wikipedia.org/wiki/CUDA)
