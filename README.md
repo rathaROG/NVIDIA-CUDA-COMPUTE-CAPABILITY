@@ -10,6 +10,15 @@
 
 ---
 
+### 🆕 Must read for CUDA 13 🔥
+
+- [Important changes](https://developer.nvidia.com/blog/whats-new-and-important-in-cuda-toolkit-13-0/#wheel_package_changes_to_cuda_130)
+- [Migration guide](https://nvidia.github.io/cccl/unstable/cccl/3.0_migration_guide.html)
+
+---
+
+### CUDA version and supported compute capabilities
+
 | CUDA Version  | Supported Compute Capabilities |
 |---------------|-------------------------------|
 | 11.0          | 3.5 – 8.0                     |
@@ -87,5 +96,5 @@ compute_90
 - Legacy GPU Compute Capability - [Official NVIDIA](https://developer.nvidia.com/cuda/gpus/legacy)
 - CUDA Toolkit Archive - [Official NVIDIA](https://developer.nvidia.com/cuda-toolkit-archive)
 - cuDNN Archive - [Official NVIDIA](https://developer.nvidia.com/cudnn-archive)
-- cuDNN Tarbal (Zip) - [Official NVIDIA](https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/)
+- cuDNN Tarbal (Zip) - [Official NVIDIA](https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/)
 - CUDA - [Wikipedia](https://en.wikipedia.org/wiki/CUDA)
