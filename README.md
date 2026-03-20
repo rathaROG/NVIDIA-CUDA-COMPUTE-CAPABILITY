@@ -4,7 +4,7 @@
 
 **~~JUST A NOTE~~ 👉 A NOTE & A PACKAGE [`nvidia-arch`](https://github.com/rathaROG/nvidia-arch/blob/main/NVIDIA-ARCH.md)**
 
-***Updated on 2026-03-19***
+***Updated on 2026-03-20***
 
 </div>
 
