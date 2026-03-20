@@ -7,7 +7,9 @@ import subprocess
 from typing import Optional, Union, List, Dict, Any
 from .arches import ALL_ARCHS, TYPE_FILTERS, CUDA_FILTERS
 
+
 PTX_SUFFIX_RE = re.compile(r"\+ptx$", re.IGNORECASE)
+
 
 def _run_nvidia_smi(query_args: str) -> Optional[str]:
     """
@@ -24,6 +26,7 @@ def _run_nvidia_smi(query_args: str) -> Optional[str]:
         return result.decode("utf-8").strip()
     except Exception:
         return None
+
 
 def get_compute_cap(return_mode: str = "sm_list") -> Optional[Union[List[str], str]]:
     """
@@ -72,6 +75,7 @@ def get_compute_cap(return_mode: str = "sm_list") -> Optional[Union[List[str], s
         return sm_codes
     else:
         raise ValueError("Invalid return_mode: choose from {'sm_list', 'cc_list', 'cc_string'}")
+
 
 def find_gpu(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, str]]]:
     """
@@ -155,6 +159,7 @@ def find_gpu(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, s
         results.append(gpu)
     return results
 
+
 def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[str]:
     """
     Normalize CUDA version to strict 'major.minor' string format.
@@ -202,9 +207,11 @@ def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[s
 
     raise TypeError("cuda_ver must be None, float, int, or string")
 
+
 def _verify_dir(path: Optional[str]) -> Optional[str]:
     """Return path if it exists as a directory, else None."""
     return path if path and os.path.isdir(path) else None
+
 
 def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Any]]:
     """
@@ -301,6 +308,7 @@ def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Any]]:
         print(msg)
         return None
 
+
 def nvcc_list_arches() -> Optional[List[str]]:
     """
     Get list of Compute/SM versions supported by the current nvcc.
@@ -322,9 +330,16 @@ def nvcc_list_arches() -> Optional[List[str]]:
     except Exception:
         return None
 
+
 def _sm_to_cc(sm: Union[str, int]) -> str:
     """
-    Convert SM version string/integer to compute capability string.
+    Convert an SM string (optionally with suffixes like '+PTX') into 
+    a compute capability string, preserving all suffixes.
+
+    Examples:
+        '89'            -> '8.9'
+        '89+PTX'        -> '8.9+PTX'
+        '89+PTX+DEBUG'  -> '8.9+PTX+DEBUG'
 
     Parameters
     ----------
@@ -336,19 +351,36 @@ def _sm_to_cc(sm: Union[str, int]) -> str:
     str
         Compute capability string, e.g. '7.5'.
     """
-    sm = int(sm)
-    return f"{sm // 10}.{sm % 10}"
+    sm_str = str(sm).strip()
+    i = 0
+    while i < len(sm_str) and sm_str[i].isdigit():
+        i += 1
+    if i == 0:
+        raise ValueError(f"Invalid SM string (no numeric prefix): '{sm}'")
+    numeric = sm_str[:i]
+    suffix = sm_str[i:]
+    sm_int = int(numeric)
+    cc = f"{sm_int // 10}.{sm_int % 10}"
+    return cc + suffix
+
 
 def get_architectures(
     gpu_type: str = "all",
     cuda_ver: Optional[Union[str, float, int]] = None,
     min_sm: Optional[Union[str, int]] = None,
     return_mode: str = "sm_list",
+    add_ptx: bool = False,
     raise_on_error: bool = False
 ) -> Union[List[str], str]:
     """
     Return the list of GPU architectures (SM versions) supported by the installed
     CUDA Toolkit (CTK) or a manually specified CUDA version.
+
+    PTX emission policy:
+    --------------------
+    If add_ptx=True, PTX is added **only for the highest SM architecture** in the
+    filtered/validated list. This follows NVIDIA best practices and matches the
+    strategy used by PyTorch, TensorFlow, and official CUDA wheels.
 
     Parameters
     ----------
@@ -368,6 +400,8 @@ def get_architectures(
         - 'sm_list': list of SM codes as strings ['75', '86', ...]
         - 'cc_list': list of compute capability strings ['7.5', ...]
         - 'cc_string': semicolon-delimited string, e.g. '7.5;8.6'
+    add_ptx : bool, optional
+        If True, include PTX for the highest SM architecture.
     raise_on_error : bool, optional
         If True, raise exceptions on invalid versions/gpu_type; else print warning and return [].
 
@@ -426,8 +460,10 @@ def get_architectures(
         min_sm = int(min_sm)
         filtered = [sm for sm in filtered if int(sm) >= min_sm]
 
-    # Step 5: Output format
+    # Step 5: Output format + PTX
     filtered = sorted(filtered, key=int)
+    if add_ptx and filtered:
+        filtered[-1] = filtered[-1] + "+PTX"
     if return_mode == "sm_list":
         return filtered
     elif return_mode == "cc_list":
@@ -440,6 +476,7 @@ def get_architectures(
             raise ValueError(msg)
         print(msg)
         return []
+
 
 def make_gencode_flags(
     arch_input: Union[List[str], str],
@@ -544,6 +581,7 @@ def make_gencode_flags(
         flags.append(f"-gencode=arch=compute_{sm},code={code}")
 
     return flags
+
 
 def print_summary(
     return_mode: str = "cc_string",
