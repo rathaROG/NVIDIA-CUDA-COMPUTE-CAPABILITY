@@ -1,10 +1,157 @@
 # Copyright (c) 2026 Ratha SIV | Apache-2.0 License
 
-import subprocess
 import re
+import subprocess
 from typing import Optional, Union, List
-
 from .arches import ALL_ARCHS, TYPE_FILTERS, CUDA_FILTERS
+
+def _run_nvidia_smi(query_args: str) -> Optional[str]:
+    """
+    Internal helper to run nvidia-smi with specified query arguments and return decoded output.
+    Returns None if nvidia-smi isn't found or errors.
+    """
+    command = [
+        "nvidia-smi",
+        f"--query-gpu={query_args}",
+        "--format=csv,noheader,nounits",
+    ]
+    try:
+        result = subprocess.check_output(command, stderr=subprocess.STDOUT)
+        return result.decode("utf-8").strip()
+    except Exception:
+        return None
+
+def get_compute_cap(
+    return_mode: str = "cc_list"
+) -> Optional[Union[List[str], str]]:
+    """
+    Returns the compute capabilities of detected NVIDIA GPUs (unique, sorted, no duplicates).
+
+    Args:
+        return_mode : {'sm_list', 'cc_list', 'cc_string'}, optional
+            Output type:
+                - 'sm_list': list of SM codes as strings, e.g. ['86', '89', ...]
+                - 'cc_list': list of compute capability strings, e.g. ['8.6', '8.9', ...]
+                - 'cc_string': semicolon-delimited string, e.g. '8.6;8.9'
+
+    Returns:
+        List[str] or str: Requested format based on return_mode, or None if not available.
+
+    Example:
+        >>> get_compute_cap()
+        ['8.6', '8.9', '12.0']
+        >>> get_compute_cap(return_mode='cc_string')
+        '8.6;8.9;12.0'
+        >>> get_compute_cap(return_mode='sm_list')
+        ['86', '89', '120']
+    """
+    return_mode = str(return_mode).strip().lower()
+    output = _run_nvidia_smi("compute_cap")
+    if not output:
+        return None
+
+    # Parse and deduplicate (preserve order)
+    seen = set()
+    cc_strs: List[str] = []
+    for line in output.splitlines():
+        value = line.strip()
+        if value.replace('.', '', 1).isdigit() and value not in seen:
+            cc_strs.append(value)
+            seen.add(value)
+    if not cc_strs:
+        return None
+
+    if return_mode == "cc_list":
+        return cc_strs
+    elif return_mode == "cc_string":
+        return ";".join(cc_strs)
+    elif return_mode == "sm_list":
+        sm_codes = [cc.replace('.', '') for cc in cc_strs]  # '8.6' → '86'
+        return sm_codes
+    else:
+        raise ValueError("Invalid return_mode: choose from {'sm_list', 'cc_list', 'cc_string'}")
+
+def find_gpu(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, str]]]:
+    """
+    Detect attached NVIDIA GPUs and return info for each.
+
+    Parameters
+    ----------
+    extra_query_gpu : str, optional
+        Comma-separated string of additional query fields (e.g., "serial,temperature.gpu").
+        Only unique fields not present in the defaults are included.
+        By default, only 'name', 'compute_cap', 'memory.total' are included.
+        If any query field is invalid, a ValueError is raised suggesting to run
+        'nvidia-smi --help-query-gpu' for the full list.
+
+    Returns
+    -------
+    List[dict] or None
+        List of dictionaries, one per GPU.
+        Each dict contains:
+            - 'name' : str
+            - 'compute_cap' : str
+            - 'memory.total' : str
+            - ...any extra query fields (with units stripped where appropriate)
+        Returns None if nvidia-smi is unavailable or no GPUs are found.
+
+    Examples
+    --------
+    >>> find_gpu()
+    [{'name': 'NVIDIA RTX A6000', 'compute_cap': '8.6', 'memory.total': '49140'}]
+    >>> find_gpu(extra_query_gpu="serial,temperature.gpu")
+    [{'name': 'NVIDIA RTX A6000', 'compute_cap': '8.6', 'memory.total': '49140', 'serial': '1711424012069', 'temperature.gpu': '43'}]
+
+    Notes
+    -----
+    The returned values for 'memory.total' and 'temperature.gpu' have units stripped. If
+    invalid query fields are specified, a ValueError is raised instructing to check
+    with `nvidia-smi --help-query-gpu`.
+    """
+    base_fields = ["name", "compute_cap", "memory.total"]
+
+    extras: List[str] = []
+    if extra_query_gpu:
+        for f in [field.strip() for field in extra_query_gpu.split(",") if field.strip()]:
+            if f not in extras and f not in base_fields:
+                extras.append(f)
+
+    fields = base_fields + extras
+    query = ",".join(fields)
+    try:
+        result = subprocess.check_output(
+            ["nvidia-smi", f"--query-gpu={query}", "--format=csv,noheader,nounits"],
+            stderr=subprocess.STDOUT,
+        )
+        output = result.decode("utf-8").strip()
+    except subprocess.CalledProcessError:
+        raise ValueError(
+            f"Some query fields in '{extra_query_gpu}' are not recognized by nvidia-smi.\n"
+            "See all available fields by running: nvidia-smi --help-query-gpu"
+        )
+    except Exception:
+        return None
+
+    entries = [line.split(",") for line in output.splitlines() if line.strip()]
+    if not entries:
+        return None
+
+    results: List[Dict[str, str]] = []
+    for values in entries:
+        gpu = {}
+        for i, field in enumerate(fields):
+            if i < len(values):
+                value = values[i].strip()
+                # Strip units from memory.total and temperature.gpu if present
+                if field == "memory.total":
+                    value = value.replace(" MiB", "").replace("MB", "").strip()
+                elif field == "temperature.gpu":
+                    value = value.replace(" C", "").replace("°C", "").strip()
+                gpu[field] = value
+            else:
+                gpu[field] = ""
+        results.append(gpu)
+    return results
 
 def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[str]:
     """
@@ -52,7 +199,6 @@ def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[s
         return f"{major}.{minor}"
 
     raise TypeError("cuda_ver must be None, float, int, or string")
-
 
 def detect_ctk(raise_on_error: bool = False) -> Optional[str]:
     """
@@ -119,7 +265,8 @@ def _sm_to_cc(sm: Union[str, int]) -> str:
     str
         Compute capability string, e.g. '7.5'.
     """
-    return f"{int(sm) // 10}.{int(sm) % 10}"
+    sm = int(sm)
+    return f"{sm // 10}.{sm % 10}"
 
 def get_architectures(
     gpu_type: str = "all",
@@ -236,7 +383,7 @@ def make_gencode_flags(
         Either:
         - sm_list: ['86', ...] (list of string SM codes)
         - cc_list: ['8.6', ...] (list of string compute capabilities)
-        - cc_string: '8.6;12.1' (semicolon-delimited string)
+        - cc_string: '8.6;8.9' (semicolon-delimited string)
     min_sm : str or int, optional
         Filter to architectures >= min_sm.
     verify_arch : bool, optional
@@ -307,15 +454,11 @@ def print_summary(
     types = ["all", "cons", "jets"]
     versions = sorted(CUDA_FILTERS.keys(), key=lambda x: (int(x.split(".")[0]), int(x.split(".")[1])))
 
-    def sm_to_cc(sm):
-        sm = int(sm)
-        return f"{sm // 10}.{sm % 10}"
-
     sep = ";"
 
     def format_list(l):
         if return_mode.startswith("cc"):
-            return sep.join([sm_to_cc(sm) for sm in l])
+            return sep.join([_sm_to_cc(sm) for sm in l])
         else:
             return sep.join(l)
 
@@ -334,7 +477,7 @@ def print_summary(
         if sm_list_all:
             min_val = sm_list_all[0]
             max_val = sm_list_all[-1]
-            all_val = (sm_to_cc(min_val) if return_mode.startswith("cc") else min_val) + ".." + (sm_to_cc(max_val) if return_mode.startswith("cc") else max_val)
+            all_val = (_sm_to_cc(min_val) if return_mode.startswith("cc") else min_val) + ".." + (_sm_to_cc(max_val) if return_mode.startswith("cc") else max_val)
         else:
             all_val = "-"
         col_widths["all"] = max(col_widths["all"], len(all_val) + 2)
@@ -374,7 +517,7 @@ def print_summary(
         if sm_list_all:
             min_val = sm_list_all[0]
             max_val = sm_list_all[-1]
-            all_val = (sm_to_cc(min_val) if return_mode.startswith("cc") else min_val) + ".." + (sm_to_cc(max_val) if return_mode.startswith("cc") else max_val)
+            all_val = (_sm_to_cc(min_val) if return_mode.startswith("cc") else min_val) + ".." + (_sm_to_cc(max_val) if return_mode.startswith("cc") else max_val)
         else:
             all_val = "-"
         row += all_val.ljust(col_widths["all"])
