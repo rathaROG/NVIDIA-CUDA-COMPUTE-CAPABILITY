@@ -442,7 +442,8 @@ def get_architectures(
 def make_gencode_flags(
     arch_input: Union[List[str], str],
     min_sm: Optional[Union[str, int]] = None,
-    verify_arch: bool = True
+    verify_arch: bool = True,
+    add_ptx: bool = False,
 ) -> List[str]:
     """
     Convert SM architecture codes or compute capability strings to nvcc -gencode flags.
@@ -451,18 +452,21 @@ def make_gencode_flags(
     ----------
     arch_input : list of str or str
         Either:
-        - sm_list: ['86', ...] (list of string SM codes)
-        - cc_list: ['8.6', ...] (list of string compute capabilities)
+        - sm_list: ['86', ...] (list of SM codes)
+        - cc_list: ['8.6', ...] (list of compute capabilities)
         - cc_string: '8.6;8.9' (semicolon-delimited string)
     min_sm : str or int, optional
         Filter to architectures >= min_sm.
     verify_arch : bool, optional
         If True, ensure all SM codes are in ALL_ARCHS. Default is True.
+    add_ptx : bool, optional
+        If True, include 'compute_XX' in the code for each SM (produces e.g. '-gencode=arch=compute_86,code=[sm_86,compute_86]').
+        Default is False (no PTX).
 
     Returns
     -------
     list of str
-        Flags like ['-gencode=arch=compute_86,code=sm_86', ...].
+        Flags like ['-gencode=arch=compute_86,code=sm_86', ...] or if add_ptx=True, ['-gencode=arch=compute_86,code=sm_86,compute_86', ...].
 
     Raises
     ------
@@ -489,7 +493,10 @@ def make_gencode_flags(
             continue
         if verify_arch and sm not in ALL_ARCHS:
             raise ValueError(f"Invalid SM code '{sm}'.")
-        flags.append(f"-gencode=arch=compute_{sm},code=sm_{sm}")
+        if add_ptx:
+            flags.append(f"-gencode=arch=compute_{sm},code=[sm_{sm},compute_{sm}]")
+        else:
+            flags.append(f"-gencode=arch=compute_{sm},code=sm_{sm}")
     return flags
 
 def print_summary(
