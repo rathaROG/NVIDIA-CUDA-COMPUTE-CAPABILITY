@@ -91,6 +91,30 @@ CUDA  Arch (min..max)   Consumer/Workstation (cons)        Jetson (jets)
 6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.6;8.7;8.8;8.9;9.0;10.0;10.3;11.0;12.0;12.1
 ```
 
+#### Detect CTK (CUDA Toolkit)
+
+```python
+import json
+from nvidia_arch import detect_ctk
+
+cuda_info = detect_ctk()
+print(json.dumps(cuda_info, indent=2))
+```
+
+```bash
+{
+  "version": "13.0",
+  "root": "/usr/local/cuda",
+  "include": {
+    "root": "/usr/local/cuda/include",
+    "cuda": "/usr/local/cuda/include/cccl/cuda",
+    "cub": "/usr/local/cuda/include/cccl/cub",
+    "thrust": "/usr/local/cuda/include/cccl/thrust"
+  },
+  "lib": "/usr/local/cuda/lib64"
+}
+```
+
 #### Get supported SM architectures from installed CTK (CUDA Toolkit)
 
 ```python
