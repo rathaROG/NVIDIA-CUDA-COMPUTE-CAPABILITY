@@ -2,7 +2,7 @@
 
 import re
 import subprocess
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict
 from .arches import ALL_ARCHS, TYPE_FILTERS, CUDA_FILTERS
 
 def _run_nvidia_smi(query_args: str) -> Optional[str]:
