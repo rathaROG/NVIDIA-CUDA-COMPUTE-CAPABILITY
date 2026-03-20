@@ -13,9 +13,13 @@ requires-python = ">=3"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 keywords = [
-    "machine learning", "deep learning", "nvidia", "cuda", "nvcc", 
-    "compute capability", "compute architecture", "CC", "SM", "AI"
+    "machine learning", "deep learning", "nvidia", "CUDA", "nvcc", "PTX",
+    "compute capability", "compute architecture", "CC", "SM", "AI", "GPU", 
+    "NVIDIA GPU", "GPU architecture", "GPU detection", "gencode", "CUDA extension", 
+    "nvcc flags", "CUDA build", "CUDA toolkit", "fatbin", "cubin", "SASS", "HPC",
+    "PyTorch extension", "TensorFlow custom op", "setup.py CUDA",
 ]
+
 authors = [{ name = "Ratha SIV" }]
 maintainers = [{ name = "rathaROG" }]
 classifiers = [
