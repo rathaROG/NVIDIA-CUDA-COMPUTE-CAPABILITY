@@ -10,6 +10,10 @@
 
 # `nvidia-arch`
 
+***“ `nvidia-arch` removes the guesswork and keeps your CUDA builds future‑proof and reproducible. ”***
+
+---
+
 </div>
 
 A lightweight tool for detecting and querying NVIDIA GPU architectures (SM/CC), and generating `-gencode` flags for CUDA builds; ideal for integrating into Python `setup.py` and custom CUDA workflows.
@@ -18,18 +22,25 @@ A lightweight tool for detecting and querying NVIDIA GPU architectures (SM/CC), 
 
 ## ❓ Why this exists
 
-Working with CUDA toolchains is notoriously inconsistent across systems, CUDA versions, and GPU families.  
-Different machines report different supported architectures, `nvcc` behaves differently depending on the installed CTK (CUDA Toolkit), and build scripts often end up hard‑coding SM versions that quickly become outdated.
+Working with CUDA toolchains is notoriously inconsistent across systems, CUDA versions, and GPU families. Different machines report different supported architectures, `nvcc` behaves differently depending on the installed CTK (CUDA Toolkit), and build scripts often end up hard‑coding SM versions that quickly become outdated.
 
-This package solves that by providing:
+### This package solves that by providing:
 
-- A **single reliable source of truth** for supported SM and compute capabilities  
-- Automatic detection of architectures from the installed CUDA Toolkit  
-- Clean overrides for building against **specific CUDA versions**  
-- Easy generation of correct `-gencode` flags  
-- A simple API that works the same on Linux, Windows, WSL, and CI environments  
+- A **single reliable source of truth** for supported SM and compute capabilities
+- Automatic detection of architectures from the installed CUDA Toolkit
+- Clean overrides for building against **specific CUDA versions**
+- Correct and reproducible generation of `-gencode` flags
+- Consistent behavior across Linux, Windows, WSL, and CI environments
 
-> **In short: `nvidia-arch` removes the guesswork and keeps your CUDA builds future‑proof and reproducible.**
+### Key features:
+
+- Detect installed CUDA Toolkit (CTK) and its include/lib paths
+- Query supported SM/CC architectures for any CUDA version
+- Generate correct `-gencode` flags for nvcc
+- Handle PTX emission cleanly (`+PTX` suffix or highest‑SM policy)
+- Filter architectures by GPU family (consumer, workstation, Jetson)
+- Provide PyTorch‑style CC strings (`7.5;8.6;8.9+PTX`)
+- Work reliably across heterogeneous environments (local, Docker, CI)
 
 ## 💽 Installation
 
