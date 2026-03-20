@@ -448,55 +448,80 @@ def make_gencode_flags(
     """
     Convert SM architecture codes or compute capability strings to nvcc -gencode flags.
 
+    PTX emission policy:
+    --------------------
+    If add_ptx=True, PTX is added **only for the highest SM architecture** in the
+    filtered/validated list. This follows NVIDIA best practices and matches the
+    strategy used by PyTorch, TensorFlow, and official CUDA wheels.
+
     Parameters
     ----------
     arch_input : list of str or str
         Either:
-        - sm_list: ['86', ...] (list of SM codes)
-        - cc_list: ['8.6', ...] (list of compute capabilities)
+        - sm_list: ['86', '89', ...] (list of SM codes)
+        - cc_list: ['8.6', '8.9', ...] (list of compute capabilities)
         - cc_string: '8.6;8.9' (semicolon-delimited string)
     min_sm : str or int, optional
         Filter to architectures >= min_sm.
     verify_arch : bool, optional
         If True, ensure all SM codes are in ALL_ARCHS. Default is True.
     add_ptx : bool, optional
-        If True, include 'compute_XX' in the code for each SM (produces e.g. '-gencode=arch=compute_86,code=[sm_86,compute_86]').
-        Default is False (no PTX).
+        If True, include PTX only for the highest SM architecture.
+        Example:
+            sm_86 → -gencode=arch=compute_86,code=sm_86
+            sm_89 → -gencode=arch=compute_89,code=[sm_89,compute_89]  (highest)
 
     Returns
     -------
     list of str
-        Flags like ['-gencode=arch=compute_86,code=sm_86', ...] or if add_ptx=True, ['-gencode=arch=compute_86,code=sm_86,compute_86', ...].
+        Flags like:
+            ['-gencode=arch=compute_86,code=sm_86',
+             '-gencode=arch=compute_89,code=[sm_89,compute_89]']
 
     Raises
     ------
     ValueError
         For unknown SM/CC code or unrecognized entry.
     """
+    # Normalize input into a list of strings
     if isinstance(arch_input, str):
         arch_list = [item.strip() for item in arch_input.split(";") if item.strip()]
     else:
         arch_list = [str(item).strip() for item in arch_input if str(item).strip()]
 
+    # Convert min_sm to int if provided
     if min_sm is not None:
         min_sm = int(min_sm)
-    flags: List[str] = []
+
+    # Parse and normalize SM codes
+    sms = []
     for item in arch_list:
         if item.isdigit() and len(item) in (2, 3):
             sm = item
         elif "." in item:
             major, minor = item.split(".")
-            sm = f"{int(major)*10 + int(minor)}"
+            sm = f"{int(major) * 10 + int(minor)}"
         else:
             raise ValueError(f"Unrecognized architecture string: '{item}'")
         if min_sm is not None and int(sm) < min_sm:
             continue
         if verify_arch and sm not in ALL_ARCHS:
             raise ValueError(f"Invalid SM code '{sm}'.")
-        if add_ptx:
-            flags.append(f"-gencode=arch=compute_{sm},code=[sm_{sm},compute_{sm}]")
+        sms.append(sm)
+
+    if not sms:
+        return []
+
+    # Highest SM gets PTX (if enabled)
+    sms = sorted(sms, key=lambda x: int(x))
+    highest = sms[-1]
+    flags: List[str] = []
+    for sm in sms:
+        if add_ptx and sm == highest:
+            code = f"[sm_{sm},compute_{sm}]"
         else:
-            flags.append(f"-gencode=arch=compute_{sm},code=sm_{sm}")
+            code = f"sm_{sm}"
+        flags.append(f"-gencode=arch=compute_{sm},code={code}")
     return flags
 
 def print_summary(
