@@ -194,15 +194,15 @@ get_architectures(gpu_type="cons", cuda_ver="13.0", min_sm=75, return_mode="cc_l
 ['7.5', '8.6', '8.9', '12.0', '12.1']
 ```
 
-#### Get PyTorch‑style architectures string
+#### Get PyTorch‑style architectures string with PTX
 
 ```python
 from nvidia_arch import get_architectures
-get_architectures(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode="cc_string")
+get_architectures(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode="cc_string", add_ptx=True)
 ```
 
 ```bash
-'7.5;8.6;8.7;8.9;11.0;12.0;12.1'
+'7.5;8.6;8.7;8.9;11.0;12.0;12.1+PTX'
 ```
 
 ### Generate `nvcc` `-gencode` flags in `Setup.py`
@@ -210,12 +210,12 @@ get_architectures(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode=
 ```python
 from nvidia_arch import get_architectures, make_gencode_flags
 arches = get_architectures(gpu_type="jets", cuda_ver="13.0", min_sm=75)
-make_gencode_flags(arches)
+make_gencode_flags(arches, add_ptx=True)
 # extra_compile_args["nvcc"] += make_gencode_flags(arches)
 ```
 
 ```bash
-['-gencode=arch=compute_87,code=sm_87', '-gencode=arch=compute_110,code=sm_110']
+['-gencode=arch=compute_87,code=sm_87', '-gencode=arch=compute_110,code=[sm_110,compute_110]']
 ```
 
 See a real example in [BEVFusionx](https://github.com/rathaumons/bevfusionx/blob/main/setup.py).
