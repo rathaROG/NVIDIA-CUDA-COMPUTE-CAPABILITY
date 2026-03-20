@@ -202,36 +202,47 @@ def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[s
 
     raise TypeError("cuda_ver must be None, float, int, or string")
 
-def _verify_dir(path):
-    """Verify existence; if missing, set to None"""
+def _verify_dir(path: Optional[str]) -> Optional[str]:
+    """Return path if it exists as a directory, else None."""
     return path if path and os.path.isdir(path) else None
 
-def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Optional[str]]]:
+def detect_ctk(
+    raise_on_error: bool = False,
+    beautify: bool = False
+) -> Optional[Dict[str, Any]]:
     """
     Detect CUDA Toolkit version, root, include, and lib paths.
 
     Parameters
     ----------
     raise_on_error : bool, optional
-        Raise RuntimeError if detection fails. Default is False.
+        If True, raise RuntimeError if detection fails. Default: False.
+    beautify : bool, optional
+        If True, print the detected CUDA info as a pretty, human-readable dict. Default: False.
 
     Returns
     -------
     dict or None
-        Dictionary:
-            - 'version': CUDA version (str or None)
-            - 'root': CUDA Toolkit root (str or None)
-            - 'include': dict:
-                - 'root': base include directory
-                - 'cuda': cuda headers directory
-                - 'cub': cub headers directory
-                - 'thrust': thrust headers directory
-            - 'lib': CUDA library path (str or None)
+        The detected CUDA environment as a dictionary with keys:
+            - 'version' : CUDA version (str or None)
+            - 'root'    : CUDA Toolkit root directory (str or None)
+            - 'include' : dict, with subpaths:
+                - 'root'    : base include directory
+                - 'cuda'    : cuda headers directory
+                - 'cub'     : cub headers directory
+                - 'thrust'  : thrust headers directory
+            - 'lib'    : CUDA library path (str or None)
+        If detection fails, returns None (or raises if raise_on_error=True).
 
     Raises
     ------
     RuntimeError
         If raise_on_error is True and detection fails.
+
+    Examples
+    --------
+    >>> detect_ctk()
+    >>> detect_ctk(beautify=True)
     """
     try:
         out = subprocess.check_output(["nvcc", "--version"]).decode("utf-8")
@@ -248,7 +259,7 @@ def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Optional[str]
         root = os.path.dirname(os.path.dirname(nvcc_path)) if nvcc_path else None
         include_root = os.path.join(root, "include") if root else None
 
-        # set include paths
+        cuda_include = cub_include = thrust_include = None
         if include_root:
             if version and float(version) >= 13.0:
                 cccl_path = os.path.join(include_root, "cccl")
@@ -265,7 +276,6 @@ def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Optional[str]
         cub_include = _verify_dir(cub_include)
         thrust_include = _verify_dir(thrust_include)
 
-        # Library path
         if sys.platform.startswith("win"):
             lib_path = os.path.join(root, "lib", "x64") if root else None
         else:
@@ -280,7 +290,7 @@ def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Optional[str]
             print(msg)
             return None
 
-        return {
+        cuda_info = {
             "version": version,
             "root": root,
             "include": {
@@ -291,6 +301,12 @@ def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Optional[str]
             },
             "lib": lib_path,
         }
+
+        if beautify:
+            pretty = json.dumps(cuda_info, indent=2)
+            print("CUDA Toolkit Environment:\n" + pretty)
+
+        return cuda_info
 
     except Exception:
         msg = "CUDA Toolkit version or root directory could not be detected. Ensure nvcc is in PATH."
