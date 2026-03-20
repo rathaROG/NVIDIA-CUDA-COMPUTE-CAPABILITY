@@ -91,7 +91,7 @@ CUDA  Arch (min..max)   Consumer/Workstation (cons)        Jetson (jets)
 6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.6;8.7;8.8;8.9;9.0;10.0;10.3;11.0;12.0;12.1
 ```
 
-#### Detect CTK (CUDA Toolkit)
+#### Detect CTK (CUDA Toolkit) in your environment
 
 ```python
 import json
@@ -113,6 +113,35 @@ print(json.dumps(cuda_info, indent=2))
   },
   "lib": "/usr/local/cuda/lib64"
 }
+```
+
+#### Find all NVIDIA GPU(s) installed
+
+```python
+import json
+from nvidia_arch import find_gpu
+
+gpu_info = find_gpu(extra_query_gpu='serial,temperature.gpu')
+print(json.dumps(gpu_info, indent=2))
+```
+
+```bash
+[
+  {
+    "name": "NVIDIA RTX A6000",
+    "compute_cap": "8.6",
+    "memory.total": "49140",
+    "serial": "1234567891011",
+    "temperature.gpu": "44"
+  },
+  {
+    "name": "NVIDIA RTX A6000",
+    "compute_cap": "8.6",
+    "memory.total": "49140",
+    "serial": "1234567891012",
+    "temperature.gpu": "39"
+  }
+]
 ```
 
 #### Get supported SM architectures from installed CTK (CUDA Toolkit)
