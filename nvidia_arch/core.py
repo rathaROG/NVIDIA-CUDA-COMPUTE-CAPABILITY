@@ -23,9 +23,7 @@ def _run_nvidia_smi(query_args: str) -> Optional[str]:
     except Exception:
         return None
 
-def get_compute_cap(
-    return_mode: str = "cc_list"
-) -> Optional[Union[List[str], str]]:
+def get_compute_cap(return_mode: str = "sm_list") -> Optional[Union[List[str], str]]:
     """
     Returns the compute capabilities of detected NVIDIA GPUs (unique, sorted, no duplicates).
 
@@ -41,11 +39,11 @@ def get_compute_cap(
 
     Example:
         >>> get_compute_cap()
-        ['8.6', '8.9', '12.0']
+        ['86', '89', '120']
         >>> get_compute_cap(return_mode='cc_string')
         '8.6;8.9;12.0'
-        >>> get_compute_cap(return_mode='sm_list')
-        ['86', '89', '120']
+        >>> get_compute_cap(return_mode='cc_list')
+        ['8.6', '8.9', '12.0']
     """
     return_mode = str(return_mode).strip().lower()
     output = _run_nvidia_smi("compute_cap")
