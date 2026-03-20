@@ -1,9 +1,16 @@
+<div align="center">
+
 [![GitHub release](https://img.shields.io/github/release/rathaROG/nvidia-arch.svg?logo=github&logoColor=lightgray)](https://github.com/rathaROG/nvidia-arch/releases)
-[![PyPI version](https://badge.fury.io/py/nvidia-arch.svg)](https://badge.fury.io/py/nvidia-arch)
-[![Downloads total](https://static.pepy.tech/badge/nvidia-arch)](https://pepy.tech/project/nvidia-arch)
-[![Downloads monthly](https://static.pepy.tech/badge/nvidia-arch/month)](https://pepy.tech/project/nvidia-arch)
+[![Wheels](https://img.shields.io/pypi/wheel/nvidia-arch)](https://pypi.org/project/nvidia-arch/)
+[![Test](https://github.com/rathaROG/nvidia-arch/actions/workflows/test.yaml/badge.svg)](https://github.com/rathaROG/nvidia-arch/actions/workflows/test.yaml)
+[![Build](https://github.com/rathaROG/nvidia-arch/actions/workflows/build.yaml/badge.svg)](https://github.com/rathaROG/nvidia-arch/actions/workflows/build.yaml)
+[![Publish](https://github.com/rathaROG/nvidia-arch/actions/workflows/publish.yaml/badge.svg)](https://github.com/rathaROG/nvidia-arch/actions/workflows/publish.yaml)
+
+![cuda-2026](https://github.com/user-attachments/assets/dea107b7-e987-4c15-9749-ce3c924b57b2)
 
 # `nvidia-arch`
+
+</div>
 
 A lightweight tool for detecting and querying NVIDIA GPU architectures (SM/CC), and generating `-gencode` flags for CUDA builds; ideal for integrating into Python `setup.py` and custom CUDA workflows.
 
@@ -26,7 +33,11 @@ This package solves that by providing:
 
 ## 💽 Installation
 
-### Install from PyPi:
+### Install from [PyPI](https://pypi.org/project/nvidia-arch/):
+
+[![PyPI version](https://badge.fury.io/py/nvidia-arch.svg)](https://badge.fury.io/py/nvidia-arch)
+[![Downloads total](https://static.pepy.tech/badge/nvidia-arch)](https://pepy.tech/project/nvidia-arch)
+[![Downloads monthly](https://static.pepy.tech/badge/nvidia-arch/month)](https://pepy.tech/project/nvidia-arch)
 
 ```bash
 pip install nvidia-arch
@@ -40,7 +51,7 @@ pip install git+https://github.com/rathaROG/nvidia-arch.git
 
 ## 🧪 Usage
 
-For all details of all available functions: see [`core.py`](nvidia_arch/core.py) and [`arches.py`](nvidia_arch/arches.py).
+For all details of all available functions: see [`core.py`](https://github.com/rathaROG/nvidia-arch/blob/main/nvidia_arch/core.py) and [`arches.py`](https://github.com/rathaROG/nvidia-arch/blob/main/nvidia_arch/arches.py).
 
 ### Main highlights
 
