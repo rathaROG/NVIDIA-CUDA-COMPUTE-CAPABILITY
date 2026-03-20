@@ -233,11 +233,6 @@ def detect_ctk(raise_on_error: bool = False) -> Optional[Dict[str, Any]]:
     ------
     RuntimeError
         If raise_on_error is True and detection fails.
-
-    Examples
-    --------
-    >>> detect_ctk()
-    >>> detect_ctk(beautify=False)
     """
     try:
         out = subprocess.check_output(["nvcc", "--version"]).decode("utf-8")
