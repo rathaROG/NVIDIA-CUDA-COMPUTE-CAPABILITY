@@ -2,13 +2,34 @@
 
 import subprocess
 import re
+from typing import Optional, Union, List
 
 from .arches import ALL_ARCHS, TYPE_FILTERS, CUDA_FILTERS
 
-
-def normalize_cuda_ver(cuda_ver):
+def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[str]:
     """
-    Normalize CUDA version to strict 'major.minor' format.
+    Normalize CUDA version to strict 'major.minor' string format.
+
+    Parameters
+    ----------
+    cuda_ver : str, float, int or None
+        The CUDA version in any of:
+        - float (e.g. 12.1)
+        - int (e.g. 12)
+        - string (e.g. '12.1', '12.0.1', etc)
+        - None
+
+    Returns
+    -------
+    str or None
+        Normalized CUDA version string in 'major.minor' form, or None if input is None.
+
+    Raises
+    ------
+    ValueError
+        If the string format is not a valid version.
+    TypeError
+        If input is not one of str, float, int, or None.
     """
     if cuda_ver is None:
         return None
@@ -33,8 +54,25 @@ def normalize_cuda_ver(cuda_ver):
     raise TypeError("cuda_ver must be None, float, int, or string")
 
 
-def detect_ctk(raise_on_error=False):
-    """Detect the installed CUDA version using nvcc and return it as a string (e.g., '12.8')."""
+def detect_ctk(raise_on_error: bool = False) -> Optional[str]:
+    """
+    Detect the installed CUDA version using nvcc.
+
+    Parameters
+    ----------
+    raise_on_error : bool, optional
+        Whether to raise RuntimeError if version cannot be detected. Default is False.
+
+    Returns
+    -------
+    str or None
+        CUDA version in 'major.minor' format, or None if not detected.
+
+    Raises
+    ------
+    RuntimeError
+        If raise_on_error is True and CUDA version cannot be detected.
+    """
     try:
         out = subprocess.check_output(["nvcc", "--version"]).decode("utf-8")
         match = re.search(r"release (\d+\.\d+)", out)
@@ -46,104 +84,90 @@ def detect_ctk(raise_on_error=False):
         print(msg)
         return None
 
+def nvcc_list_arches() -> Optional[List[str]]:
+    """
+    Get list of Compute/SM versions supported by the current nvcc.
 
-def nvcc_list_arches():
-    """Return list of Compute/SM versions supported by nvcc, or None if unavailable."""
+    Returns
+    -------
+    list of str or None
+        List of SM version codes as strings, or None if unavailable.
+    """
     try:
         out = subprocess.check_output(["nvcc", "--list-gpu-arch"]).decode("utf-8")
         if "sm_" in out:
             arches = re.findall(r"sm_(\d+)", out)
         elif "compute_" in out:
             arches = re.findall(r"compute_(\d+)", out)
-        else: 
+        else:
             return None
         return sorted(set(arches))
     except Exception:
         return None
 
-
-def _sm_to_cc(sm):
-    """Convert SM version string (e.g., '75') to compute capability string (e.g., '7.5')."""
-    return f"{int(sm) // 10}.{int(sm) % 10}"
-
-
-def get_architectures(
-    gpu_type="all",
-    cuda_ver=None,
-    min_sm=None,
-    return_mode="sm_list",
-    raise_on_error=False
-):
+def _sm_to_cc(sm: Union[str, int]) -> str:
     """
-    Return the list of GPU architectures (SM versions) supported by the installed
-    CUDA Toolkit (CTK) or by a manually specified CUDA version.
+    Convert SM version string/integer to compute capability string.
 
     Parameters
     ----------
-    gpu_type : {"all", "cons", "jets", "cons+jets"}, optional
-        Selects which GPU families to include in the result:
+    sm : str or int
+        Streaming multiprocessor (SM) version code, e.g. '75'.
 
-        - "all"        : return all supported architectures
-        - "cons"       : consumer/workstation GPUs only
-        - "jets"       : Jetson/embedded GPUs only
-        - "cons+jets"  : union of consumer/workstation and Jetson GPUs
+    Returns
+    -------
+    str
+        Compute capability string, e.g. '7.5'.
+    """
+    return f"{int(sm) // 10}.{int(sm) % 10}"
 
-        The filter is applied after determining the base set of supported
-        architectures.
+def get_architectures(
+    gpu_type: str = "all",
+    cuda_ver: Optional[Union[str, float, int]] = None,
+    min_sm: Optional[Union[str, int]] = None,
+    return_mode: str = "sm_list",
+    raise_on_error: bool = False
+) -> Union[List[str], str]:
+    """
+    Return the list of GPU architectures (SM versions) supported by the installed
+    CUDA Toolkit (CTK) or a manually specified CUDA version.
 
-    cuda_ver : str or float or int or None, optional
+    Parameters
+    ----------
+    gpu_type : {'all', 'cons', 'jets', 'cons+jets'}, optional
+        Selects which GPU families to include:
+        - 'all'         : all supported architectures (default)
+        - 'cons'        : consumer/workstation GPUs only
+        - 'jets'        : Jetson/embedded GPUs only
+        - 'cons+jets'   : union of consumer/workstation and Jetson GPUs
+    cuda_ver : str, float, int or None, optional
         CUDA version to use when determining supported architectures.
-        If ``None`` (default), the function attempts to query the installed
-        CTK using ``nvcc --list-gpu-arch``. If that is unavailable, it falls
-        back to parsing ``nvcc --version``.
-
-        Accepted formats include:
-            - ``12.8`` (float)
-            - ``"12.8"`` (string)
-            - ``"12.8.1"`` (string; extra components ignored)
-            - ``12`` or ``"12"`` (interpreted as ``"12.0"``)
-
-        The version is normalized to ``"major.minor"`` and matched against
-        the internal CUDA capability filter table.
-
-    min_sm : str or int or None
-        SM number with two/three digit strings, filtering architectures to 
-        those >= min_sm (e.g. 60).
-
-    return_mode : {"sm_list", "cc_list", "cc_string"}, optional
-        Controls the output format:
-
-        - "sm_list"   : return SM codes, e.g. ["75", "86", "121"]
-        - "cc_list"   : return compute capabilities, e.g. ["7.5", "8.6", "12.1"]
-        - "cc_string" : return compute capabilities as a semicolon-separated
-                        string, e.g. "7.5;8.6;12.1"
-
+        If None (default), will auto-detect from installed CTK.
+    min_sm : str, int, or None, optional
+        Minimum SM number (e.g., 60), filtering to those >= min_sm.
+    return_mode : {'sm_list', 'cc_list', 'cc_string'}, optional
+        Output type:
+        - 'sm_list': list of SM codes as strings ['75', '86', ...]
+        - 'cc_list': list of compute capability strings ['7.5', ...]
+        - 'cc_string': semicolon-delimited string, e.g. '7.5;8.6'
     raise_on_error : bool, optional
-        If ``True``, raise an exception when CUDA detection fails, when an
-        unsupported CUDA version is provided, or when ``return_mode`` is not
-        recognized. If ``False`` (default), the function prints a warning and
-        returns an empty list.
+        If True, raise exceptions on invalid versions/gpu_type; else print warning and return [].
 
     Returns
     -------
     list of str or str
-        Depending on `return_mode`, returns a list of SM codes, a list of compute
-        capability strings, or a semicolon-separated compute capability string.
+        Available architectures in the chosen mode.
 
-    Notes
-    -----
-    The function determines supported architectures using the following 
-    priority order:
-
-    1. If ``cuda_ver`` is provided, use the internal CUDA capability table.
-    2. Otherwise, attempt to query ``nvcc --list-gpu-arch``.
-    3. If that fails, fall back to parsing ``nvcc --version`` and using the
-       internal CUDA capability table.
+    Raises
+    ------
+    RuntimeError
+        If CUDA version cannot be detected (with raise_on_error True).
+    ValueError
+        If unknown gpu_type or return_mode (with raise_on_error True).
     """
     gpu_type = str(gpu_type).strip().lower()
     return_mode = str(return_mode).strip().lower()
 
-    # Step 1: Normalize CUDA version (may be None)
     cuda_ver_norm = normalize_cuda_ver(cuda_ver)
 
     # Step 2: Lookup arches by CUDA version (from filter); else detect
@@ -154,7 +178,6 @@ def get_architectures(
                 raise RuntimeError(msg)
             print(msg)
             return []
-
         sm_list = CUDA_FILTERS[cuda_ver_norm][:]
     else:
         # Try nvcc --list-gpu-arch, fallback to nvcc --version version map
@@ -177,14 +200,14 @@ def get_architectures(
         print(msg)
         return []
 
-    # Filter the SM list based on the selected GPU type and minimum SM
+    # Step 4: Filter the SM list based on GPU type and minimum SM
     allowed = set(TYPE_FILTERS[gpu_type])
     filtered = [sm for sm in sm_list if sm in allowed]
     if min_sm is not None:
         min_sm = int(min_sm)
         filtered = [sm for sm in filtered if int(sm) >= min_sm]
 
-    # Step 4: Output format
+    # Step 5: Output format
     filtered = sorted(filtered, key=int)
     if return_mode == "sm_list":
         return filtered
@@ -199,32 +222,35 @@ def get_architectures(
         print(msg)
         return []
 
-
-def make_gencode_flags(arch_input, min_sm=None, verify_arch=True):
+def make_gencode_flags(
+    arch_input: Union[List[str], str],
+    min_sm: Optional[Union[str, int]] = None,
+    verify_arch: bool = True
+) -> List[str]:
     """
-    Convert SM architecture codes or compute capability strings into nvcc -gencode flags.
+    Convert SM architecture codes or compute capability strings to nvcc -gencode flags.
 
     Parameters
     ----------
-    arch_input : list[str] or str
-        - sm_list: ['86', '121', ...] (list of two/three digit strings)
-        - cc_list: ['8.6', '12.1', ...] (list of float strings)
-        - cc_string: '8.6;12.1;...' (semicolon-separated string)
-    min_sm : str or int or None
-        SM number with two/three digit strings, filtering architectures to 
-        those >= min_sm (e.g. 60).
-    verify_arch : bool, optional (default=True)
-        If True, ensure all SM codes are valid and present in ALL_ARCHS.
+    arch_input : list of str or str
+        Either:
+        - sm_list: ['86', ...] (list of string SM codes)
+        - cc_list: ['8.6', ...] (list of string compute capabilities)
+        - cc_string: '8.6;12.1' (semicolon-delimited string)
+    min_sm : str or int, optional
+        Filter to architectures >= min_sm.
+    verify_arch : bool, optional
+        If True, ensure all SM codes are in ALL_ARCHS. Default is True.
 
     Returns
     -------
     list of str
-        Each entry is like '-gencode=arch=compute_86,code=sm_86'
+        Flags like ['-gencode=arch=compute_86,code=sm_86', ...].
 
     Raises
     ------
     ValueError
-        If an architecture is not recognized or is not valid.
+        For unknown SM/CC code or unrecognized entry.
     """
     if isinstance(arch_input, str):
         arch_list = [item.strip() for item in arch_input.split(";") if item.strip()]
@@ -233,7 +259,7 @@ def make_gencode_flags(arch_input, min_sm=None, verify_arch=True):
 
     if min_sm is not None:
         min_sm = int(min_sm)
-    flags = []
+    flags: List[str] = []
     for item in arch_list:
         if item.isdigit() and len(item) in (2, 3):
             sm = item
@@ -249,23 +275,27 @@ def make_gencode_flags(arch_input, min_sm=None, verify_arch=True):
         flags.append(f"-gencode=arch=compute_{sm},code=sm_{sm}")
     return flags
 
-
-def print_summary(return_mode="cc_string", min_sm=None):
+def print_summary(
+    return_mode: str = "cc_string",
+    min_sm: Optional[Union[str, int]] = None
+) -> None:
     """
-    Print a compact, well-aligned summary table of CUDA versions and supported architectures:
-    - Arch (min..max) : Only min..max shown.
-    - Consumer/Workstation (cons) : Full list shown.
-    - Jetson (jets) : Full list shown.
-
-    Filter with min_sm for the minimum SM version to display.
+    Print a formatted summary of CUDA versions and supported architectures.
 
     Parameters
     ----------
-    return_mode : {'sm_list', 'cc_list', 'cc_string'}
-        Format for architecture output (default: 'cc_string')
-    min_sm : str or int or None
-        SM number with two/three digit strings, filtering architectures to 
-        those >= min_sm (e.g. 60).
+    return_mode : {'sm_list', 'cc_list', 'cc_string'}, optional
+        Format for architectures (default: 'cc_string').
+    min_sm : str or int, optional
+        Minimum SM number to include.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    Shows a compact summary table with per-version min/max, consumer and jetson architectures.
     """
     return_mode = str(return_mode).strip().lower()
 
@@ -281,9 +311,8 @@ def print_summary(return_mode="cc_string", min_sm=None):
         sm = int(sm)
         return f"{sm // 10}.{sm % 10}"
 
-    sep = ";"  # no space
+    sep = ";"
 
-    # Utility for output conversion
     def format_list(l):
         if return_mode.startswith("cc"):
             return sep.join([sm_to_cc(sm) for sm in l])
@@ -296,9 +325,9 @@ def print_summary(return_mode="cc_string", min_sm=None):
         "cons": max(len(col_names[1]), 24),
         "jets": max(len(col_names[2]), 16)
     }
-    # Preprocess width
+
     for ver in versions:
-        # "all": only min..max
+        # "all": min..max
         sm_list_all = [sm for sm in CUDA_FILTERS[ver] if sm in TYPE_FILTERS["all"]]
         if min_sm is not None:
             sm_list_all = [sm for sm in sm_list_all if int(sm) >= int(min_sm)]
@@ -366,7 +395,7 @@ def print_summary(return_mode="cc_string", min_sm=None):
 
         print(row)
     print("=" * (cuda_width + sum(col_widths.values())))
-    
+
     # Footnote: all archs filtered by min_sm, returned in current mode
     all_archs = [sm for sm in ALL_ARCHS if min_sm is None or int(sm) >= int(min_sm)]
     footnote = format_list(all_archs)
