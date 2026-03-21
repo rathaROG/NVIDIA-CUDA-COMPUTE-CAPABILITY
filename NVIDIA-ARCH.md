@@ -8,8 +8,6 @@
 
 ![cover](https://raw.githubusercontent.com/rathaROG/nvidia-arch/refs/heads/main/assets/nvidia-arch.jpg)
 
-# `nvidia-arch`
-
 ***“ `nvidia-arch` removes the guesswork and keeps your CUDA builds future‑proof and reproducible. ”***
 
 ---
