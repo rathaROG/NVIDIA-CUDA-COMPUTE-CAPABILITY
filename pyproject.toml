@@ -52,5 +52,8 @@ Homepage = "https://github.com/rathaROG/nvidia-arch"
 Repository = "https://github.com/rathaROG/nvidia-arch.git"
 GitHub = "https://github.com/rathaROG/nvidia-arch"
 
+[tool.setuptools]
+packages = ["nvidia_arch"]
+
 [tool.setuptools.dynamic]
 version = { attr = "nvidia_arch.__version__" }
