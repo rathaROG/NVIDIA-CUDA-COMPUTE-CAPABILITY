@@ -30,7 +30,7 @@
 | 12.9          | 5.0 – 12.1                     |                                  |
 | 13.0 – 13.2   | 7.5 – 12.1                     | 8.8 ¹                            |
 
-<sup>¹ 8.8 is mysterious; it is not documented or explained anywhere prior to CUDA 13.0, but it appears as supported starting from CUDA 13.0, see: ![mysterious-88.png](https://github.com/rathaROG/nvidia-arch/blob/main/assets/nvidia-arch.jpghttps://github.com/rathaROG/nvidia-arch/blob/main/assets/mysterious-88.png). </sup><br>
+<sup>¹ 8.8 is mysterious; it is not documented or explained anywhere prior to CUDA 13.0, but it appears as supported starting from CUDA 13.0, see: [mysterious-88.png](https://github.com/rathaROG/nvidia-arch/blob/main/assets/mysterious-88.png). </sup><br>
 
 ---
 
