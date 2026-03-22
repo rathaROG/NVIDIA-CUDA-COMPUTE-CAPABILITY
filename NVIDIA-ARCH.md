@@ -232,9 +232,10 @@ from nvidia_arch import validate_cc_string
 validate_cc_string(
     "6.1+PTX;Pascal;12.0;Lovelace",
     named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
-    highest_ptx_only=True,
+    force_highest_ptx=True,
     against_cuda_ver="12.8"
 )
+
 ```
 
 ```bash
@@ -246,7 +247,7 @@ from nvidia_arch import validate_cc_string
 validate_cc_string(
     "6.1+PTX;Pascal;12.0;Lovelace;13.5;0.9",
     named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
-    highest_ptx_only=True,
+    force_highest_ptx=True,
     against_cuda_ver="13.2"
 )
 ```
@@ -254,9 +255,8 @@ validate_cc_string(
 ```bash
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "C:\dev\exc\python\p311\Lib\site-packages\nvidia_arch\core.py", line 429, in validate_cc_string
-    f"Unknown architecture(s): {', '.join(unknown_arch)}. "
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\dev\exc\python\p311\Lib\site-packages\nvidia_arch\core.py", line 483, in validate_cc_string
+    raise ValueError(f"Unknown architecture(s): {', '.join(unknown_arch)}. ")
 ValueError: Unknown architecture(s): 0.9, 13.5+PTX.
 ```
 
