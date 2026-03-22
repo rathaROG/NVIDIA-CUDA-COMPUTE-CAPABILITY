@@ -225,6 +225,41 @@ get_architectures(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode=
 '7.5;8.6;8.7;8.9;11.0;12.0;12.1+PTX'
 ```
 
+#### Validate a PyTorch‑style architectures string
+
+```python
+from nvidia_arch import validate_cc_string
+validate_cc_string(
+    "6.1+PTX;Pascal;12.0;Lovelace",
+    named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
+    highest_ptx_only=True,
+    against_cuda_ver="12.8"
+)
+```
+
+```bash
+'6.0;6.1;8.9;12.0+PTX'
+```
+
+```python
+from nvidia_arch import validate_cc_string
+validate_cc_string(
+    "6.1+PTX;Pascal;12.0;Lovelace;13.5;0.9",
+    named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
+    highest_ptx_only=True,
+    against_cuda_ver="13.2"
+)
+```
+
+```bash
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "C:\dev\exc\python\p311\Lib\site-packages\nvidia_arch\core.py", line 429, in validate_cc_string
+    f"Unknown architecture(s): {', '.join(unknown_arch)}. "
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Unknown architecture(s): 0.9, 13.5+PTX.
+```
+
 ### Generate `nvcc` `-gencode` flags in `Setup.py`
 
 ```python
