@@ -55,3 +55,4 @@ def test_arch_103():
 
 if __name__ == "__main__":
     test_arch_88()
+    test_arch_103()
