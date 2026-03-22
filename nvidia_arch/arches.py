@@ -14,7 +14,7 @@ ALL_ARCHS = [
     "70", "72", "75",
     "80", "86", "87", "88", "89",
     "90",
-    "100", "103",
+    "100", "101", "103",
     "110",
     "120", "121",
 ]
@@ -58,6 +58,7 @@ CUDA_FILTERS_RANGES = {
 CUDA_EXCLUDES = {
     (11.8, 12.9): [88],   # mysterious, only in cuda 13.0 or later
     (12.8, 12.8): [103],  # only in cuda 12.9 or later
+    (13.0, 13.2): [101],  # only in cuda 12.8 and 12.9
 }
 """dict: Mapping CUDA version ranges to lists of valid but unsupported SM codes."""
 
