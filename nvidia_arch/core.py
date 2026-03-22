@@ -380,6 +380,113 @@ def _sm_to_cc(sm: Union[str, int]) -> str:
     return cc + suffix
 
 
+def validate_cc_string(
+    cc_string: str,
+    named_arches: dict = None,
+    force_highest_ptx: bool = False,
+    against_cuda_ver: str = None,
+) -> str:
+    """
+    Validate and normalize a PyTorch-style cc_string, optionally ensuring all architectures are valid
+    for a specific CUDA Toolkit version present or specified.
+
+    Parameters
+    ----------
+    cc_string : str
+        Semicolon-delimited architecture string, e.g. '7.5;8.6+PTX;12.0'
+    force_highest_ptx : bool, optional
+        If True, removes '+PTX' from all entries and add to the numerically highest architecture.
+        This matches best practice for CUDA/PTX emission and prevents duplicates.
+    named_arches : dict, optional
+        Mapping of architecture names to numeric architecture strings, e.g., {'Pascal': '6.0;6.1+PTX'}
+    against_cuda_ver : str or None, optional
+        If None, will detect the installed CUDA Toolkit version.
+        If provided, must be a string or float (e.g. '12.1').
+        Architectures will be checked for support in this CUDA version.
+
+    Raises
+    ------
+    ValueError
+        If any architecture is not valid, is not supported by the specified CUDA version,
+        or the input string is malformed.
+
+    Returns
+    -------
+    str
+        Normalized cc_string.
+
+    Examples
+    --------
+    >>> validate_cc_string(
+    ...    "6.1+PTX;Pascal;12.0;Lovelace",
+    ...    named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
+    ...    force_highest_ptx=True,
+    ...    against_cuda_ver="12.8"
+    ... )
+    '6.0;6.1;8.9;12.0+PTX'
+    """
+
+    def arch_sort_key(val):
+        num = val.replace('+PTX', '').strip()
+        major, minor = map(int, num.split('.', 1))
+        return (major, minor)
+
+    # Expand named architectures
+    s = cc_string
+    if named_arches:
+        for named_arch, archval in named_arches.items():
+            s = re.sub(r"\b{}\b(?!\+PTX)".format(re.escape(named_arch)), archval, s)
+
+    # Flatten and clean entries
+    items = [a.strip() for a in s.split(';') if a.strip()]
+    clean_items = []
+    for item in items:
+        norm = item
+        m = re.fullmatch(r"(\d+)\.(\d+)(\+PTX)?", norm, flags=re.IGNORECASE)
+        if not m:
+            raise ValueError(f"Invalid arch entry: '{item}'.")
+        clean_items.append(norm)
+    
+    # Deduplicate and sort
+    clean_items = sorted(set(clean_items), key=arch_sort_key)
+
+    # Add PTX only to the highest architecture if force_highest_ptx is True
+    if force_highest_ptx:
+        items_no_ptx = [re.sub(r'\+PTX$', '', item, flags=re.IGNORECASE) for item in clean_items]
+        if items_no_ptx:
+            items_no_ptx[-1] += '+PTX'
+        clean_items = items_no_ptx
+
+    # Validate against CUDA version filters
+    if against_cuda_ver is not None:
+        cuda_ver = normalize_cuda_ver(against_cuda_ver)
+    else:
+        ctk = detect_ctk()
+        cuda_ver = ctk["version"] if ctk else None
+    if cuda_ver is None:
+        raise ValueError("Could not detect a CUDA Toolkit version.")
+    if cuda_ver not in CUDA_FILTERS:
+        raise ValueError(f"Unknown or unsupported CUDA version '{cuda_ver}'.")
+
+    # Check each cleaned entry against these sets (ignore +PTX for arch validity)
+    ALL_ARCHS_CC = [_sm_to_cc(sm) for sm in ALL_ARCHS]
+    valid_for_ver = set([_sm_to_cc(sm) for sm in CUDA_FILTERS[cuda_ver]])
+    unknown_arch = []
+    unsupported_arch = []
+    for item in clean_items:
+        base_arch = item.replace("+PTX", "")
+        if base_arch not in ALL_ARCHS_CC:
+            unknown_arch.append(item)
+        if base_arch not in valid_for_ver:
+            unsupported_arch.append(item)
+    if unknown_arch:
+        raise ValueError(f"Unknown architecture(s): {', '.join(unknown_arch)}. ")
+    if unsupported_arch:
+        raise ValueError(f"Unsupported architecture(s) for CUDA {cuda_ver}: {', '.join(unsupported_arch)}. ")
+
+    return ';'.join(clean_items)
+
+
 def get_architectures(
     gpu_type: str = "all",
     cuda_ver: Optional[Union[str, float, int]] = None,
