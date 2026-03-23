@@ -2,6 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/release/rathaROG/nvidia-arch.svg?logo=github&logoColor=lightgray)](https://github.com/rathaROG/nvidia-arch/releases)
 [![Wheels](https://img.shields.io/pypi/wheel/nvidia-arch)](https://pypi.org/project/nvidia-arch/)
+[![Explore](https://github.com/rathaROG/nvidia-arch/actions/workflows/explorer.yaml/badge.svg)](https://github.com/rathaROG/nvidia-arch/actions/workflows/explorer.yaml)
 [![Test](https://github.com/rathaROG/nvidia-arch/actions/workflows/test.yaml/badge.svg)](https://github.com/rathaROG/nvidia-arch/actions/workflows/test.yaml)
 [![Build](https://github.com/rathaROG/nvidia-arch/actions/workflows/build.yaml/badge.svg)](https://github.com/rathaROG/nvidia-arch/actions/workflows/build.yaml)
 [![Publish](https://github.com/rathaROG/nvidia-arch/actions/workflows/publish.yaml/badge.svg)](https://github.com/rathaROG/nvidia-arch/actions/workflows/publish.yaml)
