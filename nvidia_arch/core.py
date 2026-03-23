@@ -871,7 +871,7 @@ def print_summary(
     # Footnote: CUDA versions and their unsupported architectures
     notes = _cuda_excludes_footnotes(CUDA_EXCLUDES, return_mode=return_mode)
     if notes:
-        print("\n* Mysterious Architectures:")
+        print("\n* Other Notes:")
         for idx, note in enumerate(notes, start=1):
             print(f"  {idx}. {note}")
     print("\n")
