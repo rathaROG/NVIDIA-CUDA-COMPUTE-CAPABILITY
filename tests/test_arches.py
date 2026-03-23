@@ -17,7 +17,7 @@ def test_arch_88():
             raise AssertionError(f"CUDA {cuda_ver} should not support architecture 8.8, but it is listed in {arches}")
         if cuda_ver >= 13.0 and '8.8' not in arches:
             raise AssertionError(f"CUDA {cuda_ver} should support architecture 8.8, but it is not listed in {arches}")
-        
+
         # sm_list mode
         arches = na.get_architectures(cuda_ver=cuda_ver, return_mode='sm_list')
         if cuda_ver < 13.0 and '88' in arches:
@@ -41,7 +41,7 @@ def test_arch_101():
             raise AssertionError(f"CUDA {cuda_ver} should not support architecture 10.1, but it is listed in {arches}")
         if cuda_ver in [12.8, 12.9] and '10.1' not in arches:
             raise AssertionError(f"CUDA {cuda_ver} should support architecture 10.1, but it is not listed in {arches}")
-        
+
         # sm_list mode
         arches = na.get_architectures(cuda_ver=cuda_ver, return_mode='sm_list')
         if cuda_ver not in [12.8, 12.9] and '101' in arches:
@@ -66,7 +66,7 @@ def test_arch_103():
             raise AssertionError(f"CUDA {cuda_ver} should not support architecture 10.3, but it is listed in {arches}")
         if cuda_ver >= 12.9 and '10.3' not in arches:
             raise AssertionError(f"CUDA {cuda_ver} should support architecture 10.3, but it is not listed in {arches}")
-        
+
         # sm_list mode
         arches = na.get_architectures(cuda_ver=cuda_ver, return_mode='sm_list')
         if cuda_ver < 12.9 and '103' in arches:
@@ -77,7 +77,32 @@ def test_arch_103():
     print("test_arch_103 passed successfully for all CUDA versions.")
 
 
+def test_arch_110():
+    """
+    Test get_architectures function to see if it correctly lists the correct architectures.
+    Architecture 110 or 11.0 is only available from CUDA 13.0.
+    """
+    for cuda_ver in CUDA_VERSIONS_FLOAT:
+
+        # cc_string mode
+        arches = na.get_architectures(cuda_ver=cuda_ver, return_mode='cc_string')
+        if cuda_ver < 13.0 and '110' in arches:
+            raise AssertionError(f"CUDA {cuda_ver} should not support architecture 11.0, but it is listed in {arches}")
+        if cuda_ver >= 13.0 and '11.0' not in arches:
+            raise AssertionError(f"CUDA {cuda_ver} should support architecture 11.0, but it is not listed in {arches}")
+
+        # sm_list mode
+        arches = na.get_architectures(cuda_ver=cuda_ver, return_mode='sm_list')
+        if cuda_ver < 13.0 and '110' in arches:
+            raise AssertionError(f"CUDA {cuda_ver} should not support architecture 110, but it is listed in {arches}")
+        if cuda_ver >= 13.0 and '110' not in arches:
+            raise AssertionError(f"CUDA {cuda_ver} should support architecture 110, but it is not listed in {arches}")
+
+    print("test_arch_110 passed successfully for all CUDA versions.")
+
+
 if __name__ == "__main__":
     test_arch_88()
     test_arch_101()
     test_arch_103()
+    test_arch_110()
