@@ -935,5 +935,5 @@ def print_summary(
         print("\n* Other Notes:")
         for idx, note in enumerate(notes, start=1):
             print(f"  {idx}. {note}")
-    print("\n")
+    print("")
 
