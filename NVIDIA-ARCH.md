@@ -202,6 +202,7 @@ Supported inputs for `gpu_type`:
 - `"all"`: All supported GPUs
 - `"cons"`: Only consumer/workstation GPUs
 - `"jets"`: Only Jetson/embedded GPUs
+- `"dcen"`: Only datacenter GPUs
 - `"cons+jets"`: Only consumer/workstation + Jetson/embedded GPUs
 
 ```python
