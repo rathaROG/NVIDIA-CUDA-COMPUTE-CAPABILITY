@@ -25,9 +25,9 @@
 | 12.9            | `5.0` – `12.1`                     |
 | 13.0 – 13.2     | `7.5` – `12.1`                     |
 
-<sup>1. CUDA 12.8 does not include arch/compute `10.3` even though it already supports arch/compute `12.0`. </sup><br>
-<sup>2. CUDA 12.8 and 12.9 are the only versions that support arch/compute `10.1`. </sup><br>
-<sup>3. CUDA 12.8 and 12.9 do not support arch/compute `11.0`. </sup><br>
+<sup>1. CUDA 12.8 does not include arch/compute `10.3` even though it already exposes arch/compute `12.0`. </sup><br>
+<sup>2. CUDA 12.8 and 12.9 are the only versions that expose arch/compute `10.1` (Meant for Thor T4000/5000, and later replaced by `11.0` in CUDA 13.x). </sup><br>
+<sup>3. CUDA 12.8 and 12.9 do not support arch/compute `11.0` (Former `10.1` as explained in 2). </sup><br>
 <sup>4. CUDA 13.x includes a mysterious arch/compute `8.8` which is not documented or explained anywhere, see: [mysterious-88.png](https://github.com/rathaROG/nvidia-arch/blob/main/assets/mysterious-88.png). </sup><br>
 
 ---
