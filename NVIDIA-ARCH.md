@@ -138,9 +138,9 @@ print(json.dumps(cuda_info, indent=2))
 
 ```python
 import json
-from nvidia_arch import find_gpu
+from nvidia_arch import find_gpus
 
-gpu_info = find_gpu(extra_query_gpu='serial,temperature.gpu')
+gpu_info = find_gpus(extra_query_gpu='serial,temperature.gpu')
 print(json.dumps(gpu_info, indent=2))
 ```
 
@@ -166,8 +166,8 @@ print(json.dumps(gpu_info, indent=2))
 #### Get compute cap of the GPU(s) installed
 
 ```python
-from nvidia_arch import get_compute_cap
-get_compute_cap(return_mode='cc_string', add_ptx=True)
+from nvidia_arch import get_compute_caps
+get_compute_caps(return_mode='cc_string', add_ptx=True)
 ```
 
 ```bash
@@ -177,8 +177,8 @@ get_compute_cap(return_mode='cc_string', add_ptx=True)
 #### Get supported SM architectures from installed CTK (CUDA Toolkit)
 
 ```python
-from nvidia_arch import get_architectures
-get_architectures(cuda_ver=None, min_sm=75)
+from nvidia_arch import get_arches
+get_arches(cuda_ver=None, min_sm=75)
 ```
 
 ```bash
@@ -188,8 +188,8 @@ get_architectures(cuda_ver=None, min_sm=75)
 #### Get architectures for a specific CTK (CUDA Toolkit) version
 
 ```python
-from nvidia_arch import get_architectures
-get_architectures(cuda_ver="13.0", min_sm=75)
+from nvidia_arch import get_arches
+get_arches(cuda_ver="13.0", min_sm=75)
 ```
 
 ```bash
@@ -205,8 +205,8 @@ Supported inputs for `gpu_type`:
 - `"cons+jets"`: Only consumer/workstation + Jetson/embedded GPUs
 
 ```python
-from nvidia_arch import get_architectures
-get_architectures(gpu_type="cons", cuda_ver="13.0", min_sm=75)
+from nvidia_arch import get_arches
+get_arches(gpu_type="cons", cuda_ver="13.0", min_sm=75)
 ```
 
 ```bash
@@ -216,8 +216,8 @@ get_architectures(gpu_type="cons", cuda_ver="13.0", min_sm=75)
 #### Get compute capabilities instead of SM codes
 
 ```python
-from nvidia_arch import get_architectures
-get_architectures(gpu_type="cons", cuda_ver="13.0", min_sm=75, return_mode="cc_list")
+from nvidia_arch import get_arches
+get_arches(gpu_type="cons", cuda_ver="13.0", min_sm=75, return_mode="cc_list")
 ```
 
 ```bash
@@ -227,8 +227,8 @@ get_architectures(gpu_type="cons", cuda_ver="13.0", min_sm=75, return_mode="cc_l
 #### Get PyTorch‑style architectures string with PTX
 
 ```python
-from nvidia_arch import get_architectures
-get_architectures(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode="cc_string", add_ptx=True)
+from nvidia_arch import get_arches
+get_arches(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode="cc_string", add_ptx=True)
 ```
 
 ```bash
@@ -238,8 +238,8 @@ get_architectures(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode=
 #### Validate a PyTorch‑style architectures string
 
 ```python
-from nvidia_arch import validate_cc_string
-validate_cc_string(
+from nvidia_arch import validate_arch_string
+validate_arch_string(
     "6.1+PTX;Pascal;12.0;Lovelace",
     named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
     force_highest_ptx=True,
@@ -253,8 +253,8 @@ validate_cc_string(
 ```
 
 ```python
-from nvidia_arch import validate_cc_string
-validate_cc_string(
+from nvidia_arch import validate_arch_string
+validate_arch_string(
     "6.1+PTX;Pascal;12.0;Lovelace;13.5;0.9",
     named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
     force_highest_ptx=True,
@@ -265,7 +265,7 @@ validate_cc_string(
 ```bash
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "C:\dev\exc\python\p311\Lib\site-packages\nvidia_arch\core.py", line 483, in validate_cc_string
+  File "C:\dev\exc\python\p311\Lib\site-packages\nvidia_arch\core.py", line 483, in validate_arch_string
     raise ValueError(f"Unknown architecture(s): {', '.join(unknown_arch)}. ")
 ValueError: Unknown architecture(s): 0.9, 13.5+PTX.
 ```
@@ -273,8 +273,8 @@ ValueError: Unknown architecture(s): 0.9, 13.5+PTX.
 ### Generate `nvcc` `-gencode` flags in `Setup.py`
 
 ```python
-from nvidia_arch import get_architectures, make_gencode_flags
-arches = get_architectures(gpu_type="jets", cuda_ver="13.0", min_sm=75)
+from nvidia_arch import get_arches, make_gencode_flags
+arches = get_arches(gpu_type="jets", cuda_ver="13.0", min_sm=75)
 make_gencode_flags(arches, add_ptx=True)
 # extra_compile_args["nvcc"] += make_gencode_flags(arches)
 ```
