@@ -884,7 +884,7 @@ def print_summary(
     cuda_width = 6
     # Header
     header = (
-        "CUDA".ljust(cuda_width)
+        "\nCUDA".ljust(cuda_width)
         + col_names[0].ljust(col_widths["all"])
         + col_names[1].ljust(col_widths["cons"])
         + col_names[2].ljust(col_widths["jets"])
