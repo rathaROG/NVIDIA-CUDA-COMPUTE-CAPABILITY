@@ -28,7 +28,7 @@ def _run_nvidia_smi(query_args: str) -> Optional[str]:
         return None
 
 
-def get_compute_cap(return_mode: str = "sm_list", add_ptx: bool = False) -> Optional[Union[List[str], str]]:
+def get_compute_caps(return_mode: str = "sm_list", add_ptx: bool = False) -> Optional[Union[List[str], str]]:
     """
     Returns the compute capabilities of detected NVIDIA GPUs (unique, sorted, no duplicates).
 
@@ -54,11 +54,11 @@ def get_compute_cap(return_mode: str = "sm_list", add_ptx: bool = False) -> Opti
 
     Examples
     --------
-    >>> get_compute_cap()
+    >>> get_compute_caps()
     ['86', '89', '120']
-    >>> get_compute_cap(return_mode='cc_list')
+    >>> get_compute_caps(return_mode='cc_list')
     ['8.6', '8.9', '12.0']
-    >>> get_compute_cap(return_mode='cc_string', add_ptx=True)
+    >>> get_compute_caps(return_mode='cc_string', add_ptx=True)
     '8.6;8.9;12.0+PTX'
     """
     return_mode = str(return_mode).strip().lower()
@@ -93,7 +93,18 @@ def get_compute_cap(return_mode: str = "sm_list", add_ptx: bool = False) -> Opti
         raise ValueError("Invalid return_mode: choose from {'sm_list', 'cc_list', 'cc_string'}")
 
 
-def find_gpu(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, str]]]:
+def get_compute_cap(*args, **kwargs) -> Optional[Union[List[str], str]]:
+    """Deprecated, will be removed in 7.0.0. Use `get_compute_caps()` instead."""
+    import warnings
+    warnings.warn(
+        "Function `get_compute_cap()` is deprecated and will be removed in 7.0.0. Use `get_compute_caps()` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_compute_caps(*args, **kwargs)
+
+
+def find_gpus(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, str]]]:
     """
     Detect attached NVIDIA GPUs and return info for each.
 
@@ -119,9 +130,9 @@ def find_gpu(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, s
 
     Examples
     --------
-    >>> find_gpu()
+    >>> find_gpus()
     [{'name': 'NVIDIA RTX A6000', 'compute_cap': '8.6', 'memory.total': '49140'}]
-    >>> find_gpu(extra_query_gpu="serial,temperature.gpu")
+    >>> find_gpus(extra_query_gpu="serial,temperature.gpu")
     [{'name': 'NVIDIA RTX A6000', 'compute_cap': '8.6', 'memory.total': '49140', 'serial': '1711424012069', 'temperature.gpu': '43'}]
 
     Notes
@@ -174,6 +185,17 @@ def find_gpu(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, s
                 gpu[field] = ""
         results.append(gpu)
     return results
+
+
+def find_gpu(*args, **kwargs) -> Optional[List[Dict[str, str]]]:
+    """Deprecated, will be removed in 7.0.0. Use `find_gpus()` instead."""
+    import warnings
+    warnings.warn(
+        "Function `find_gpu()` is deprecated and will be removed in 7.0.0. Use `find_gpus()` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return find_gpus(*args, **kwargs)
 
 
 def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[str]:
@@ -396,7 +418,7 @@ def _sm_to_cc(sm: Union[str, int]) -> str:
     return cc + suffix
 
 
-def validate_cc_string(
+def validate_arch_string(
     cc_string: str,
     named_arches: Optional[Dict[str, str]] = None,
     force_highest_ptx: bool = False,
@@ -433,7 +455,7 @@ def validate_cc_string(
 
     Examples
     --------
-    >>> validate_cc_string(
+    >>> validate_arch_string(
     ...    "6.1+PTX;Pascal;12.0;Lovelace",
     ...    named_arches={"Pascal": "6.0;6.1+PTX", "Lovelace": "8.9+PTX"},
     ...    force_highest_ptx=True,
@@ -501,6 +523,17 @@ def validate_cc_string(
         raise ValueError(f"Unsupported architecture(s) for CUDA {cuda_ver}: {', '.join(unsupported_arch)}. ")
 
     return ';'.join(clean_items)
+
+
+def validate_cc_string(*args, **kwargs) -> str:
+    """Deprecated, will be removed starting from 7.0.0. Use `validate_arch_string()` instead."""
+    import warnings
+    warnings.warn(
+        "Function `validate_cc_string()` is deprecated and will be removed starting from 7.0.0. Use `validate_arch_string()` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return validate_arch_string(*args, **kwargs)
 
 
 def get_arches(
@@ -618,74 +651,15 @@ def get_arches(
         return []
 
 
-def get_architectures(
-    gpu_type: str = "all",
-    cuda_ver: Optional[Union[str, float, int]] = None,
-    min_sm: Optional[Union[str, int]] = None,
-    return_mode: str = "sm_list",
-    add_ptx: bool = False,
-    raise_on_error: bool = False
-) -> Union[List[str], str]:
-    """
-    Return the list of GPU architectures (SM versions) supported by the installed
-    CUDA Toolkit (CTK) or a manually specified CUDA version.
-
-    PTX emission policy:
-    --------------------
-    If add_ptx=True, PTX is added **only for the highest SM architecture** in the
-    filtered/validated list. This follows NVIDIA best practices and matches the
-    strategy used by PyTorch, TensorFlow, and official CUDA wheels.
-
-    Parameters
-    ----------
-    gpu_type : {'all', 'cons', 'jets', 'dcen', 'cons+jets'}, optional
-        Selects which GPU families to include:
-        - 'all'         : All supported architectures (default)
-        - 'cons'        : Consumer/Workstation GPUs only
-        - 'jets'        : Jetson/embedded GPUs only
-        - 'dcen'        : Datacenter GPUs only
-        - 'cons+jets'   : Union of consumer/workstation and Jetson GPUs
-    cuda_ver : str, float, int or None, optional
-        CUDA version to use when determining supported architectures.
-        If None (default), will auto-detect from installed CTK.
-    min_sm : str, int, or None, optional
-        Minimum SM number (e.g., 60), filtering to those >= min_sm.
-    return_mode : {'sm_list', 'cc_list', 'cc_string'}, optional
-        Output type:
-        - 'sm_list': list of SM codes as strings ['75', '86', ...]
-        - 'cc_list': list of compute capability strings ['7.5', ...]
-        - 'cc_string': semicolon-delimited string, e.g. '7.5;8.6'
-    add_ptx : bool, optional
-        If True, include PTX for the highest SM architecture.
-    raise_on_error : bool, optional
-        If True, raise exceptions on invalid versions/gpu_type; else print warning and return [].
-
-    Returns
-    -------
-    list of str or str
-        Available architectures in the chosen mode.
-
-    Raises
-    ------
-    RuntimeError
-        If CUDA version cannot be detected (with raise_on_error True).
-    ValueError
-        If unknown gpu_type or return_mode (with raise_on_error True).
-    """
+def get_architectures(*args, **kwargs) -> Union[List[str], str]:
+    """Deprecated, will be removed starting from 7.0.0. Use `get_arches()` instead."""
     import warnings
     warnings.warn(
         "Function `get_architectures()` is deprecated and will be removed starting from 7.0.0. Use `get_arches()` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_arches(
-        gpu_type=gpu_type,
-        cuda_ver=cuda_ver,
-        min_sm=min_sm,
-        return_mode=return_mode,
-        add_ptx=add_ptx,
-        raise_on_error=raise_on_error,
-    )
+    return get_arches(*args, **kwargs)
 
 
 def make_gencode_flags(
