@@ -20,7 +20,7 @@ ALL_ARCHS = [
 ]
 """list of str: All supported architecture codes."""
 
-# All arches for Consumer/Workstation GPUs (CUDA 11.0+)
+# All arches for Consumer/Workstation (CUDA 11.0+)
 ALL_ARCHS_CONS = ["30", "35", "50", "52", "60", "61", "70", "75", "86", "89", "120", "121"]
 """list of str: Consumer/Workstation GPU architectures."""
 
@@ -28,20 +28,21 @@ ALL_ARCHS_CONS = ["30", "35", "50", "52", "60", "61", "70", "75", "86", "89", "1
 ALL_ARCHS_JETS = ["32", "53", "62", "72", "87", "110"]
 """list of str: Jetson/embedded GPU architectures."""
 
-# All arches for Consumer/Workstation GPUs + Jetson
+# All arches for Consumer/Workstation + Jetson
 ALL_ARCHS_CONS_JETS = sorted(set(ALL_ARCHS_CONS + ALL_ARCHS_JETS), key=lambda x: int(x))
 """list of str: Union of Consumer/Workstation and Jetson architectures."""
 
-# All arches for Datacenter GPUs only
-ALL_ARCHS_DC = sorted(set(ALL_ARCHS) - set(ALL_ARCHS_JETS) - {"50", "88", "121"}, key=lambda x: int(x))
+# All arches for Datacenter only
+ALL_ARCHS_DCEN = sorted(set(ALL_ARCHS) - set(ALL_ARCHS_JETS) - {"50", "88", "121"}, key=lambda x: int(x))
 """list of str: Datacenter GPU architectures."""
 
 # Arch filters for different GPU types
 TYPE_FILTERS = {
-    "all": ALL_ARCHS,
-    "cons": ALL_ARCHS_CONS,
-    "jets": ALL_ARCHS_JETS,
-    "cons+jets": ALL_ARCHS_CONS_JETS,
+    "all": ALL_ARCHS,                    # All GPUs
+    "cons": ALL_ARCHS_CONS,              # Consumer/Workstation GPUs
+    "jets": ALL_ARCHS_JETS,              # Jetson GPUs
+    "dcen": ALL_ARCHS_DCEN,              # Datacenter GPUs
+    "cons+jets": ALL_ARCHS_CONS_JETS,    # Consumer/Workstation + Jetson GPUs
 }
 """dict: Mapping of GPU type to valid architectures."""
 
