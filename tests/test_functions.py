@@ -61,7 +61,7 @@ def test_validate_arch_string_success():
     )
     assert result == "6.0;6.1;8.9;12.0+PTX"
 
-def test_validate_cc_string_exception():
+def test_validate_arch_string_exception():
     from nvidia_arch import validate_arch_string
     import pytest
     with pytest.raises(ValueError) as excinfo:
@@ -82,5 +82,5 @@ if __name__ == "__main__":
     test_detect_ctk()
     test_find_gpus()
     test_validate_arch_string_success()
-    test_validate_cc_string_exception()
+    test_validate_arch_string_exception()
     print("All tests passed!")
