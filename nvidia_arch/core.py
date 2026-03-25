@@ -194,10 +194,10 @@ def get_compute_caps(return_mode: str = "sm_list", add_ptx: bool = False) -> Opt
 
 
 def get_compute_cap(*args, **kwargs) -> Optional[Union[List[str], str]]:
-    """Deprecated, will be removed in 7.0.0. Use `get_compute_caps()` instead."""
+    """Deprecated, will be removed in 10.0.0. Use `get_compute_caps()` instead."""
     import warnings
     warnings.warn(
-        "Function `get_compute_cap()` is deprecated and will be removed in 7.0.0. Use `get_compute_caps()` instead.",
+        "Function `get_compute_cap()` is deprecated and will be removed in 10.0.0. Use `get_compute_caps()` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -288,10 +288,10 @@ def find_gpus(extra_query_gpu: Optional[str] = None) -> Optional[List[Dict[str, 
 
 
 def find_gpu(*args, **kwargs) -> Optional[List[Dict[str, str]]]:
-    """Deprecated, will be removed in 7.0.0. Use `find_gpus()` instead."""
+    """Deprecated, will be removed in 10.0.0. Use `find_gpus()` instead."""
     import warnings
     warnings.warn(
-        "Function `find_gpu()` is deprecated and will be removed in 7.0.0. Use `find_gpus()` instead.",
+        "Function `find_gpu()` is deprecated and will be removed in 10.0.0. Use `find_gpus()` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -627,10 +627,10 @@ def validate_arch_string(
 
 
 def validate_cc_string(*args, **kwargs) -> str:
-    """Deprecated, will be removed starting from 7.0.0. Use `validate_arch_string()` instead."""
+    """Deprecated, will be removed starting from 10.0.0. Use `validate_arch_string()` instead."""
     import warnings
     warnings.warn(
-        "Function `validate_cc_string()` is deprecated and will be removed starting from 7.0.0. Use `validate_arch_string()` instead.",
+        "Function `validate_cc_string()` is deprecated and will be removed starting from 10.0.0. Use `validate_arch_string()` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -753,10 +753,10 @@ def get_arches(
 
 
 def get_architectures(*args, **kwargs) -> Union[List[str], str]:
-    """Deprecated, will be removed starting from 7.0.0. Use `get_arches()` instead."""
+    """Deprecated, will be removed starting from 10.0.0. Use `get_arches()` instead."""
     import warnings
     warnings.warn(
-        "Function `get_architectures()` is deprecated and will be removed starting from 7.0.0. Use `get_arches()` instead.",
+        "Function `get_architectures()` is deprecated and will be removed starting from 10.0.0. Use `get_arches()` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
