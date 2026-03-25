@@ -8,7 +8,20 @@ from typing import Optional, Union, List, Dict, Tuple, Any
 from .arches import ALL_ARCHS, TYPE_FILTERS, CUDA_FILTERS, CUDA_EXCLUDES
 
 
+PTX_SPLIT_RE = re.compile(r"(\d+\.\d+)\s*\+\s*PTX", re.IGNORECASE)
 PTX_SUFFIX_RE = re.compile(r"\+ptx$", re.IGNORECASE)
+ARCH_SPLIT_RE = re.compile(r"[;\s,]+")
+
+
+def _fix_ptx_separation(arch_str: str) -> str:
+    """Normalize PTX separation in architecture strings by replacing patterns like '8.6 + PTX' with '8.6+PTX'."""
+    return PTX_SPLIT_RE.sub(r"\1+PTX", arch_str)
+
+
+def normalize_arch_string(arch_str: str) -> str:
+    """Normalize an architecture string by fixing PTX separation and splitting on common delimiters."""
+    arch_str = _fix_ptx_separation(arch_str)
+    return ';'.join(filter(None, ARCH_SPLIT_RE.split(arch_str.strip())))
 
 
 def _run_nvidia_smi(query_args: str) -> Optional[str]:
@@ -476,6 +489,7 @@ def validate_arch_string(
             s = re.sub(r"\b{}\b(?!\+PTX)".format(re.escape(named_arch)), archval, s)
 
     # Flatten and clean entries
+    s = normalize_arch_string(s)
     items = [a.strip() for a in s.split(';') if a.strip()]
     clean_items = []
     for item in items:
@@ -711,6 +725,7 @@ def make_gencode_flags(
     """
         # Normalize input into a list of strings
     if isinstance(arch_input, str):
+        arch_input = normalize_arch_string(arch_input)
         raw_list = [item.strip() for item in arch_input.split(";") if item.strip()]
     else:
         raw_list = [str(item).strip() for item in arch_input if str(item).strip()]
