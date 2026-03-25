@@ -236,6 +236,24 @@ get_arches(gpu_type="cons+jets", cuda_ver="13.0", min_sm=75, return_mode="cc_str
 '7.5;8.6;8.7;8.9;11.0;12.0;12.1+PTX'
 ```
 
+#### Normalize architectures
+
+```python
+from nvidia_arch import normalize_arches, get_arches
+
+normalize_arches(['75', '86', '89+PTX'], return_mode='cc_string')
+normalize_arches('7.5;8.6;8.9+PTX', exclude='8.6', return_mode='cc_string')
+
+arches = get_arches(cuda_ver=12.8, return_mode='cc_string', add_ptx=True)
+normalize_arches(arches, exclude='10.1', return_mode='cc_string')
+```
+
+```bash
+'7.5;8.6;8.9+PTX'
+'7.5;8.9+PTX'
+'5.0;5.2;5.3;6.0;6.1;6.2;7.0;7.2;7.5;8.0;8.6;8.7;8.9;9.0;10.0;12.0+PTX'
+```
+
 #### Validate a PyTorch‑style architectures string
 
 ```python
@@ -288,16 +306,15 @@ See a real example in [BEVFusionx](https://github.com/rathaumons/bevfusionx/blob
 
 ## Deprecation
 
-**The following legacy function names are deprecated and will be removed in version 7.0.0:**
+**The following legacy function names are deprecated and will be removed in version 10.0.0:**
 
 - `find_gpu()` → use `find_gpus()` instead  
 - `get_compute_cap()` → use `get_compute_caps()` instead  
 - `get_architectures()` → use `get_arches()` instead  
 - `validate_cc_string()` → use `validate_arch_string()` instead  
 
-You can continue using the old names until v7.0.0, but all new code and documentation now use the new, more Pythonic API. Importing or calling any deprecated function will issue a `DeprecationWarning`.
+You can continue using the old names until v10.0.0, but all new code and documentation now use the new, more Pythonic API. Importing or calling any deprecated function will issue a `DeprecationWarning`.
 
 ## 📝 License
 
 [![LICENSE](https://img.shields.io/badge/LICENSE-Apache_2.0-blue)](https://github.com/rathaROG/nvidia-arch/blob/main/LICENSE)
-
