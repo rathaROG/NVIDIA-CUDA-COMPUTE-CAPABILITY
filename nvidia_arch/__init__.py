@@ -7,7 +7,7 @@ A lightweight tool for detecting and querying NVIDIA GPU architectures (SM/CC),
 and generating `-gencode` flags for CUDA builds
 """
 
-__version__ = '6.0.0'
+__version__ = '6.1.0'
 
 from .arches import (
     ALL_ARCHS,
@@ -27,6 +27,7 @@ from .core import (
     get_arches,
     get_compute_caps,
     validate_arch_string,
+    normalize_arch_string,
     # Other utilities (unchanged):
     detect_ctk,
     normalize_cuda_ver,
@@ -56,6 +57,7 @@ __all__: list = [
     "get_arches",             # New API name
     "get_compute_caps",       # New API name
     "validate_arch_string",   # New API name
+    "normalize_arch_string",  # New API name
     "detect_ctk",
     "normalize_cuda_ver",
     "nvcc_list_arches",
