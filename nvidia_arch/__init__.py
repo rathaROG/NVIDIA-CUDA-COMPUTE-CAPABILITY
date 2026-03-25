@@ -7,7 +7,7 @@ A lightweight tool for detecting and querying NVIDIA GPU architectures (SM/CC),
 and generating `-gencode` flags for CUDA builds
 """
 
-__version__ = '6.1.0'
+__version__ = '7.0.0'
 
 from .arches import (
     ALL_ARCHS,
@@ -28,13 +28,14 @@ from .core import (
     get_compute_caps,
     validate_arch_string,
     normalize_arch_string,
+    normalize_arches,
     # Other utilities (unchanged):
     detect_ctk,
     normalize_cuda_ver,
     nvcc_list_arches,
     make_gencode_flags,
     print_summary,
-    # Aliases: Deprecated, to be removed in 7.0.0
+    # Aliases: Deprecated, to be removed in 10.0.0
     find_gpu,
     get_architectures,
     get_compute_cap,
@@ -53,18 +54,19 @@ __all__: list = [
     "CUDA_FILTERS",
     "CUDA_EXCLUDES",
     # Main functions
-    "find_gpus",              # New API name
-    "get_arches",             # New API name
-    "get_compute_caps",       # New API name
-    "validate_arch_string",   # New API name
-    "normalize_arch_string",  # New API name
+    "find_gpus",              # New API name in v6
+    "get_arches",             # New API name in v6
+    "get_compute_caps",       # New API name in v6
+    "validate_arch_string",   # New API name in v6
+    "normalize_arch_string",  # New API name in v6
+    "normalize_arches",       # New API name in v7
     "detect_ctk",
     "normalize_cuda_ver",
     "nvcc_list_arches",
     "make_gencode_flags",
     "print_summary",
-    "find_gpu",               # Alias: Deprecated, to be removed in 7.0.0
-    "get_architectures",      # Alias: Deprecated, to be removed in 7.0.0
-    "get_compute_cap",        # Alias: Deprecated, to be removed in 7.0.0
-    "validate_cc_string",     # Alias: Deprecated, to be removed in 7.0.0
+    "find_gpu",               # Alias: Deprecated, to be removed in 10.0.0
+    "get_architectures",      # Alias: Deprecated, to be removed in 10.0.0
+    "get_compute_cap",        # Alias: Deprecated, to be removed in 10.0.0
+    "validate_cc_string",     # Alias: Deprecated, to be removed in 10.0.0
 ]
