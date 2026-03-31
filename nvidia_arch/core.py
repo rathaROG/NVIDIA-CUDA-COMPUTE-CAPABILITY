@@ -370,28 +370,45 @@ def find_gpu(*args, **kwargs) -> Optional[List[Dict[str, str]]]:
     return find_gpus(*args, **kwargs)
 
 
-def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[str]:
+def normalize_cuda_ver(
+    cuda_ver: Optional[Union[str, float, int]],
+    force_full_minor: bool = False
+) -> Optional[str]:
     """
-    Normalize CUDA version to strict 'major.minor' string format.
+    Normalize a CUDA version into a strict 'major.minor' string format.
 
     Parameters
     ----------
     cuda_ver : str, float, int or None
         The CUDA version in any of:
-        - float (e.g. 12.1)
+        - float (e.g. 12.1, 13.11)
         - int (e.g. 12)
-        - string (e.g. '12.1', '12.0.1', etc)
+        - string (e.g. '12.1', '12.0.1', '13.11.2', '13.', '')
         - None
+
+        Float and int inputs are converted to strings first to preserve
+        all available precision before parsing.
+
+        Special cases:
+        - '' (empty string) → None
+        - '   ' (whitespace only) → None
+        - '13.' (trailing dot) → '13.0'
+
+    force_full_minor : bool, default False
+        Controls how many digits of the minor version are kept:
+        - False (default): keep only the first digit of the minor version.
+        - True: keep the full minor version as provided.
 
     Returns
     -------
     str or None
-        Normalized CUDA version string in 'major.minor' form, or None if input is None.
+        Normalized CUDA version string in 'major.minor' form,
+        or None if input is None or an empty/whitespace string.
 
     Raises
     ------
     ValueError
-        If the string format is not a valid version.
+        If the string format is not a valid version (non‑digit components).
     TypeError
         If input is not one of str, float, int, or None.
     """
@@ -399,21 +416,27 @@ def normalize_cuda_ver(cuda_ver: Optional[Union[str, float, int]]) -> Optional[s
         return None
 
     if isinstance(cuda_ver, (float, int)):
-        major = int(cuda_ver)
-        minor = int(round((cuda_ver - major) * 10))
-        return f"{major}.{minor}"
+        cuda_ver = str(cuda_ver)
 
     if isinstance(cuda_ver, str):
         cuda_ver = cuda_ver.strip()
+        if not cuda_ver:
+            return None
+
         parts = cuda_ver.split(".")
-        if len(parts) == 0:
-            raise ValueError(f"Invalid CUDA version: {cuda_ver}")
         major = parts[0]
         minor = parts[1] if len(parts) > 1 else "0"
+
+        if minor == "":
+            minor = "0"
+
         if not major.isdigit() or not minor.isdigit():
             raise ValueError(f"Invalid CUDA version: {cuda_ver}")
-        minor = str(int(minor))
-        return f"{major}.{minor}"
+
+        if not force_full_minor:
+            minor = minor[0]
+
+        return f"{int(major)}.{int(minor)}"
 
     raise TypeError("cuda_ver must be None, float, int, or string")
 
